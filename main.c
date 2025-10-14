@@ -10,7 +10,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 {
 
     WNDCLASSEX wc = {0};
- 
+
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProc;
@@ -34,24 +34,49 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
         g_szClassName,
         "PQVIEW",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 
+        CW_USEDEFAULT, CW_USEDEFAULT,
         WINDOW_WIDTH, WINDOW_HEIGHT,
         NULL, NULL, hInst, NULL);
 
-    if (hwnd == NULL) {
+    if (hwnd == NULL)
+    {
         MessageBox(NULL, "Window Creation Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
         return 0;
     }
+    ShowWindow(hwnd, cmdshow);
+    UpdateWindow(hwnd);
     MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
+    BOOL ret;
+    while ((ret = GetMessage(&msg, hwnd, 0, 0)) != 0)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        if (ret == -1)
+        {
+            MessageBox(NULL, "GetMessage Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+            return 0;
+        }
+        else
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
     return (int)msg.wParam;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
-    
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_CLOSE:
+        if (IDYES == MessageBox(hwnd, "Are you sure you want to exit?", "Exit", MB_YESNO | MB_ICONQUESTION )) {
+            DestroyWindow(hwnd);
+        }
+        break;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    default:
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+    return 0;
 }
