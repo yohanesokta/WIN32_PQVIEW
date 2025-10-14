@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <libpq-fe.h>
 
 static LPSTR g_szClassName = "PQWindowClass";
 
@@ -29,7 +30,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
         return 0;
     }
 
-    HWND hwnd = CreateWindowEx(
+    HWND hwnd = CreateWindowEx( 
         WS_EX_OVERLAPPEDWINDOW,
         g_szClassName,
         "PQVIEW",
@@ -75,8 +76,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        HDC hdc = BeginPaint(hwnd,&ps);
+
+        DrawText(hdc, "HELLO WIN API",-1,&rect,DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        EndPaint(hwnd,&ps);
+    }
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
     return 0;
+}
+
+void TestPostgreConnection(HWND hwnd) {
+    PGconn *conn = PQconnectdb("host=localhost port=5432 dbname=postgres user=postgres password=admin");
+
+    if (PQstatus(conn) != CONNECTION_OK) {
+        MessageBox(hwnd, PQerrorMessage(conn), "Connection to database failed", MB_OK | MB_ICONERROR);
+        PQfinish(conn);
+        return;
+    }
+
+    MessageBox(hwnd, "Connection to database succeeded", "Success", MB_OK | MB_ICONINFORMATION);
+    PQfinish(conn);
 }
