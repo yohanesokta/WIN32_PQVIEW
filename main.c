@@ -64,10 +64,43 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     return (int)msg.wParam;
 }
 
+
+void TestPostgreConnection(HWND hwnd) {
+    PGconn *conn;
+    PGresult *res;
+    const char *version;
+    char successMessage[1024] =  {0};
+    char errorMessage[1024] = {0};
+
+    static const char *conninfo = "host=localhost port=5432 dbname=postgres user=postgres password=postgres";
+    conn = PQconnectdb(conninfo);
+    if (PQstatus(conn) != CONNECTION_OK) {
+        MessageBox(hwnd, PQerrorMessage(conn), "Connection to database failed", MB_OK | MB_ICONERROR);
+        PQfinish(conn);
+        return;
+    }
+    static const char *sql = "SELECT version();";
+    res = PQexec(conn, sql);
+    if (PQresultStatus(res) == PGRES_TUPLES_OK && PQntuples(res) > 0 ) {
+        version = PQgetvalue(res, 0, 0);
+        snprintf(successMessage, sizeof(successMessage), "PostgreSQL version: %s", version);
+        MessageBox(hwnd, successMessage, "Success", MB_OK | MB_ICONINFORMATION);
+    } else {
+        snprintf(errorMessage, sizeof(errorMessage), "SQL query failed: %s", PQerrorMessage(conn));
+        MessageBox(hwnd, errorMessage, "Error", MB_OK | MB_ICONERROR);
+    }
+    PQclear(res);
+    PQfinish(conn);
+}
+
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+    case WM_CREATE:
+        TestPostgreConnection(hwnd);
+        break;
     case WM_CLOSE:
         if (IDYES == MessageBox(hwnd, "Are you sure you want to exit?", "Exit", MB_YESNO | MB_ICONQUESTION )) {
             DestroyWindow(hwnd);
@@ -83,24 +116,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         GetClientRect(hwnd, &rect);
         HDC hdc = BeginPaint(hwnd,&ps);
 
-        DrawText(hdc, "HELLO WIN API",-1,&rect,DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        DrawText(hdc, "HELLO WORLD",-1,&rect,DT_CENTER | DT_VCENTER | DT_SINGLELINE);
         EndPaint(hwnd,&ps);
     }
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
     return 0;
-}
-
-void TestPostgreConnection(HWND hwnd) {
-    PGconn *conn = PQconnectdb("host=localhost port=5432 dbname=postgres user=postgres password=admin");
-
-    if (PQstatus(conn) != CONNECTION_OK) {
-        MessageBox(hwnd, PQerrorMessage(conn), "Connection to database failed", MB_OK | MB_ICONERROR);
-        PQfinish(conn);
-        return;
-    }
-
-    MessageBox(hwnd, "Connection to database succeeded", "Success", MB_OK | MB_ICONINFORMATION);
-    PQfinish(conn);
 }
