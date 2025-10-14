@@ -3,6 +3,7 @@
 - Visual Studio With DESKTOP C++ Installed
 - Cmake
 - Ninja
+- PostgreSQL Installed
 - Code Editor (Opsional 😂)
 
 ## Installation
@@ -17,7 +18,7 @@ cd build
 Make Build With Ninja Build (Faster Build)
 
 ```bash
-cmake -G Ninja ..
+cmake .. -DPostgreSQL_ROOT="POSGRESQL ROOT!" -G Ninja
 ```
 Building Executable
 ```bash

@@ -5,7 +5,6 @@ project(PQVIEW VERSION 0.1.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(PostgreSQL_ROOT "C:/gajahweb/postgres")
 
 find_package(PostgreSQL REQUIRED)
 message(STATUS "POSTGRESQL Include Dirs" : ${PostgreSQL_INCLUDE_DIRS})
